@@ -25,6 +25,10 @@ func readLines(path string) ([][]string, error) {
 	return lines, scanner.Err()
 }
 
+type path struct {
+	X, Y int
+}
+
 func main() {
 	linies, err := readLines("input")
 	if err != nil {
@@ -35,12 +39,18 @@ func main() {
 
 	fmt.Println("Part 1: ", correctes1)
 
+	var camins = []path{
+		path{1, 1},
+		path{3, 1},
+		path{5, 1},
+		path{7, 1},
+		path{1, 2},
+	}
+
 	correctes2 := 1
-	correctes2 = correctes2 * processaMapa(linies, 1, 1)
-	correctes2 = correctes2 * processaMapa(linies, 3, 1)
-	correctes2 = correctes2 * processaMapa(linies, 5, 1)
-	correctes2 = correctes2 * processaMapa(linies, 7, 1)
-	correctes2 = correctes2 * processaMapa(linies, 1, 2)
+	for _, cami := range camins {
+		correctes2 = correctes2 * processaMapa(linies, cami.X, cami.Y)
+	}
 
 	fmt.Println("Part 2: ", correctes2)
 }
