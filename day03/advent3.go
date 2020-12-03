@@ -40,11 +40,11 @@ func main() {
 	fmt.Println("Part 1: ", correctes1)
 
 	var camins = []path{
-		path{1, 1},
-		path{3, 1},
-		path{5, 1},
-		path{7, 1},
-		path{1, 2},
+		{1, 1},
+		{3, 1},
+		{5, 1},
+		{7, 1},
+		{1, 2},
 	}
 
 	correctes2 := 1
