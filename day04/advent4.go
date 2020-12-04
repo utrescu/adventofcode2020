@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -25,10 +27,8 @@ func readLines(path string) ([][]fields, error) {
 			// Nou password
 			passports = append(passports, passport)
 			passport = make([]fields, 0)
-			fmt.Println("")
 		} else {
 			for _, part := range strings.Split(line, " ") {
-				fmt.Println(part)
 				field := strings.Split(part, ":")
 				passport = append(passport, fields{field[0], field[1]})
 
@@ -44,10 +44,20 @@ type fields struct {
 	value string
 }
 
+type passportFields struct {
+	field      string
+	validation string
+}
+
 func main() {
-	fieldsRequired := []string{
-		"byr", "iyr", "eyr", "hgt",
-		"hcl", "ecl", "pid",
+	fieldsRequired := []passportFields{
+		{"byr", "^(19[2-9][0-9]|200[0-2])$"},
+		{"iyr", "^20(1[0-9]|20)$"},
+		{"eyr", "^20(2[0-9]|30)$"},
+		{"hgt", "^(1[5-8][0-9]cm$|19[0-3]cm$)|(59|6[0-9]|7[0-6])in$"},
+		{"hcl", "^#[0-9a-f]{6}$"},
+		{"ecl", "^amb|blu|brn|gry|grn|hzl|oth$"},
+		{"pid", "^[0-9]{9}$"},
 	}
 	fieldOptional := "cid"
 
@@ -56,12 +66,13 @@ func main() {
 		panic("File read failed")
 	}
 
-	var valids1 = passwordValids(
+	valids1, valids2 := passwordValids(
 		lines,
 		fieldsRequired,
 		fieldOptional)
 
 	fmt.Println("Cas 1: ", valids1)
+	fmt.Println("Cas 2: ", valids2)
 
 }
 
@@ -74,10 +85,10 @@ func passportContains(passport []fields, value string) bool {
 	return false
 }
 
-func passportContainsFields(passport []fields, requireds []string) bool {
+func passportContainsFields(passport []fields, requireds []passportFields) bool {
 	var contains = 0
 	for _, requiredField := range requireds {
-		if passportContains(passport, requiredField) {
+		if passportContains(passport, requiredField.field) {
 			contains = contains + 1
 		}
 	}
@@ -87,14 +98,39 @@ func passportContainsFields(passport []fields, requireds []string) bool {
 	return false
 }
 
-func passwordValids(passports [][]fields, required []string, optional string) int {
+func getField(passport []fields, name string) (fields, error) {
+	for _, field := range passport {
+		if field.field == name {
+			return field, nil
+		}
+	}
+	return fields{}, errors.New("Not found field")
+}
 
-	valids := 0
+func passportValidates(passport []fields, requireds []passportFields) bool {
+	for _, required := range requireds {
+		passportField, _ := getField(passport, required.field)
+
+		match, _ := regexp.MatchString(required.validation, passportField.value)
+		if !match {
+			return false
+		}
+	}
+	return true
+}
+
+func passwordValids(passports [][]fields, required []passportFields, optional string) (int, int) {
+
+	valids1 := 0
+	valids2 := 0
 
 	for _, passport := range passports {
 		if passportContainsFields(passport, required) {
-			valids = valids + 1
+			valids1 = valids1 + 1
+			if passportValidates(passport, required) {
+				valids2 = valids2 + 1
+			}
 		}
 	}
-	return valids
+	return valids1, valids2
 }
