@@ -76,6 +76,8 @@ func main() {
 
 }
 
+// -- PART 1
+
 func passportContains(passport []fields, value string) bool {
 	for _, field := range passport {
 		if field.field == value {
@@ -85,18 +87,7 @@ func passportContains(passport []fields, value string) bool {
 	return false
 }
 
-func passportContainsFields(passport []fields, requireds []passportFields) bool {
-	var contains = 0
-	for _, requiredField := range requireds {
-		if passportContains(passport, requiredField.field) {
-			contains = contains + 1
-		}
-	}
-	if contains == len(requireds) {
-		return true
-	}
-	return false
-}
+// --- PART 2: validate fields ----
 
 func getField(passport []fields, name string) (fields, error) {
 	for _, field := range passport {
@@ -119,15 +110,33 @@ func passportValidates(passport []fields, requireds []passportFields) bool {
 	return true
 }
 
+// -------------
+
+func passportIsCorrect(passport []fields, requireds []passportFields) (bool, bool) {
+	var contains = 0
+	for _, requiredField := range requireds {
+		if passportContains(passport, requiredField.field) {
+			contains = contains + 1
+		}
+	}
+
+	if contains == len(requireds) {
+		// ok, now Validate part 2
+		return true, passportValidates(passport, requireds)
+	}
+	return false, false
+}
+
 func passwordValids(passports [][]fields, required []passportFields, optional string) (int, int) {
 
 	valids1 := 0
 	valids2 := 0
 
 	for _, passport := range passports {
-		if passportContainsFields(passport, required) {
+		one, two := passportIsCorrect(passport, required)
+		if one {
 			valids1 = valids1 + 1
-			if passportValidates(passport, required) {
+			if two {
 				valids2 = valids2 + 1
 			}
 		}
