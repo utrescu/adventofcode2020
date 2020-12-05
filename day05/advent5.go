@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 )
 
 // readLines reads a whole file into memory
@@ -29,12 +30,14 @@ func main() {
 		panic("File read failed")
 	}
 
-	id1 := calculaBigID(linies)
+	id1, myID := calculaBigID(linies)
 
 	fmt.Println("Part 1: ", id1)
 
-	fmt.Println(decodeLine("BFFFBBFRRR"))
+	fmt.Println("Part 2: ", myID)
 }
+
+// -- PART 1
 
 func decode(code string, values int) int {
 
@@ -57,17 +60,37 @@ func decodeLine(line string) (int, int) {
 
 }
 
-func calculaBigID(lines []string) int {
+// --- PART 2
+
+func findForat(ids []int) int {
+
+	for pos, currentID := range ids {
+		if pos+2 < len(ids) {
+			if currentID+2 == ids[pos+1] {
+				return currentID + 1
+			}
+		}
+	}
+	return -1
+}
+
+func calculaBigID(lines []string) (int, int) {
 	big := 0
+	var ids []int
 
 	for _, line := range lines {
 		fila, col := decodeLine(line)
 
 		id := fila*8 + col
+		ids = append(ids, id)
 		if id > big {
 			big = id
 		}
 	}
 
-	return big
+	// PART 2
+	sort.Ints(ids)
+	myID := findForat(ids)
+
+	return big, myID
 }
