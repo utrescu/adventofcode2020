@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const shiny = "shiny gold"
+
 func stringToInt(str string) (int, error) {
 	nonFractionalPart := strings.Split(str, ".")
 	return strconv.Atoi(nonFractionalPart[0])
@@ -68,9 +70,9 @@ func readLines(path string) (map[string][]bag, error) {
 	return lines, scanner.Err()
 }
 
-// Part 1
+// ---------------   Part 1
 func teShiny(coloret bag, bags map[string][]bag) bool {
-	if coloret.name == "shiny gold" {
+	if coloret.name == shiny {
 		return true
 	}
 	if coloret.qty == 0 {
@@ -85,11 +87,11 @@ func teShiny(coloret bag, bags map[string][]bag) bool {
 	return false
 }
 
-func searchShinyGoldBags(tots map[string][]bag) (int, int) {
+func searchShinyGoldBags(tots map[string][]bag) int {
 	suma := 0
 	for name, colorets := range tots {
 		ok := false
-		if name != "shiny gold" {
+		if name != shiny {
 			for _, coloret := range colorets {
 
 				ok = teShiny(coloret, tots)
@@ -101,7 +103,20 @@ func searchShinyGoldBags(tots map[string][]bag) (int, int) {
 		}
 	}
 
-	return suma, 0
+	return suma
+}
+
+// --------------- Part 2
+
+func insidePaquets(paquet bag, tots map[string][]bag) int {
+	if paquet.qty == 0 {
+		return 1
+	}
+	sum := 0
+	for _, paquet := range tots[paquet.name] {
+		sum = sum + paquet.qty + paquet.qty*insidePaquets(paquet, tots)
+	}
+	return sum
 }
 
 func main() {
@@ -110,8 +125,10 @@ func main() {
 		panic("File read failed")
 	}
 
-	correctes1, correctes2 := searchShinyGoldBags(linies)
+	correctes1 := searchShinyGoldBags(linies)
 
 	fmt.Println("Part 1: ", correctes1)
+
+	correctes2 := insidePaquets(bag{name: shiny, qty: 1}, linies)
 	fmt.Println("Part 2: ", correctes2)
 }
