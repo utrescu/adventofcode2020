@@ -54,12 +54,6 @@ func decode(code string, values int) int {
 	return min
 }
 
-func decodeLine(line string) (int, int) {
-
-	return decode(line[:7], 128), decode(line[7:], 8)
-
-}
-
 // --- PART 2
 
 func findForat(ids []int) int {
@@ -71,7 +65,7 @@ func findForat(ids []int) int {
 			}
 		}
 	}
-	return -1
+	panic("No solution")
 }
 
 func calculaBigID(lines []string) (int, int) {
@@ -79,7 +73,7 @@ func calculaBigID(lines []string) (int, int) {
 	var ids []int
 
 	for _, line := range lines {
-		fila, col := decodeLine(line)
+		fila, col := decode(line[:7], 128), decode(line[7:], 8)
 
 		id := fila*8 + col
 		ids = append(ids, id)
