@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -78,17 +79,40 @@ func packJolts(adapters []adapter) (int, int, error) {
 	return differences[1] * differences[3], 0, nil
 }
 
+func comptaPossibles(adapters []adapter) int {
+
+	sort.Slice(adapters, func(i, j int) bool {
+		return adapters[i].valor < adapters[j].valor
+	})
+
+	vegadesSurt := make(map[int]int)
+
+	// El zero surt sempre!
+	vegadesSurt[0] = 1
+
+	for _, i := range adapters {
+		// Comptar les vegades que sortirà cada número mirant les vegades
+		// que s'han fet servir els anteriors (com a màxim a 3 de distància)
+		// perquè és la única forma de que aquest surti
+
+		vegadesSurt[i.valor] = vegadesSurt[i.valor-1] + vegadesSurt[i.valor-2] + vegadesSurt[i.valor-3]
+	}
+
+	return vegadesSurt[adapters[len(adapters)-1].valor]
+}
+
 func main() {
 	numbers, err := readLines("input")
 	if err != nil {
 		panic("File read failed")
 	}
 
-	var result1, result2, fails = packJolts(numbers)
+	var result1, _, fails = packJolts(numbers)
 	if fails != nil {
 		panic(fails.Error())
 	}
 	fmt.Println("Cas 1: ", result1)
 
+	result2 := comptaPossibles(numbers)
 	fmt.Println("Cas 2: ", result2)
 }
