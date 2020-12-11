@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -31,34 +32,50 @@ func readLines(path string) ([][]string, error) {
 	return seats, scanner.Err()
 }
 
-func occuped(y int, x int, seats [][]string) int {
+func occuped(y int, x int, seats [][]string) (int, error) {
 	if x < 0 || y < 0 || x >= len(seats[0]) || y >= len(seats) {
-		return 0
+		return 0, errors.New("Fora de pantalla")
 	}
-	if seats[y][x] == "#" {
-		return 1
+	switch seats[y][x] {
+	case "#":
+		return 1, errors.New("Seient ocupat")
+	case "L":
+		return 0, errors.New("Seient buit")
 	}
-	return 0
+	return 0, nil
 }
 
-func peopleAround(y int, x int, seats [][]string) int {
-	xs := []int{x - 1, x, x + 1}
-	ys := []int{y - 1, y, y + 1}
+func peopleAround(y int, x int, distance int, seats [][]string) int {
+	dxs := []int{-1, 0, +1}
+	dys := []int{-1, 0, +1}
 	people := 0
 
-	for _, y0 := range ys {
-		for _, x0 := range xs {
-			if x == x0 && y == y0 {
+	for _, dy := range dys {
+		for _, dx := range dxs {
+			if dx == 0 && dy == 0 {
 				continue
 			}
-			people += occuped(y0, x0, seats)
+			y0 := y
+			x0 := x
+			var err error
+			sum := 0
+			distanceActual := 0
+			for err == nil && distanceActual < distance {
+				y0 = y0 + dy
+				x0 = x0 + dx
+				distanceActual++
+				sum, err = occuped(y0, x0, seats)
+			}
+			if err != nil {
+				people = people + sum
+			}
 		}
 	}
 
 	return people
 }
 
-func stepSeats(occuped int, seats [][]string) (int, int, [][]string) {
+func stepSeats(occuped int, tolerance int, distance int, seats [][]string) (int, int, [][]string) {
 	numCols := len(seats[0])
 	numRows := len(seats)
 	var newseats [][]string
@@ -69,13 +86,13 @@ func stepSeats(occuped int, seats [][]string) (int, int, [][]string) {
 			simbol := seats[y][x]
 			switch {
 			case simbol == "#":
-				if peopleAround(y, x, seats) >= 4 {
+				if peopleAround(y, x, distance, seats) >= tolerance {
 					simbol = "L"
 					changed++
 					occuped--
 				}
 			case simbol == "L":
-				if peopleAround(y, x, seats) == 0 {
+				if peopleAround(y, x, distance, seats) == 0 {
 					simbol = "#"
 					changed++
 					occuped++
@@ -87,8 +104,6 @@ func stepSeats(occuped int, seats [][]string) (int, int, [][]string) {
 		}
 		newseats = append(newseats, line)
 	}
-
-	// printseats(newseats)
 
 	return occuped, changed, newseats
 }
@@ -103,11 +118,11 @@ func printseats(seats [][]string) {
 	fmt.Println()
 }
 
-func fillSeats(seats [][]string) (int, int) {
+func fillSeats(seats [][]string, tolerance int, distance int) (int, int) {
 	changed := -1
 	occuped := 0
 	for {
-		occuped, changed, seats = stepSeats(occuped, seats)
+		occuped, changed, seats = stepSeats(occuped, tolerance, distance, seats)
 		if changed == 0 {
 			break
 		}
@@ -122,8 +137,11 @@ func main() {
 		panic("File read failed")
 	}
 
-	valids, changes := fillSeats(lines)
+	valids, changes := fillSeats(lines, 4, 1)
 
 	fmt.Println("Cas 1: ", valids, "(", changes, ")")
+
+	valids2, changes2 := fillSeats(lines, 5, len(lines))
+	fmt.Println("Cas 2: ", valids2, "(", changes2, ")")
 
 }
