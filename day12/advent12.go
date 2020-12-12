@@ -13,6 +13,11 @@ func stringToInt(str string) (int, error) {
 	return strconv.Atoi(nonFractionalPart[0])
 }
 
+type direction struct {
+	x int
+	y int
+}
+
 type airplane struct {
 	direccio direction
 	posicio  direction
@@ -48,11 +53,6 @@ func mou(actual direction, value int, dir direction) direction {
 	return actual
 }
 
-type direction struct {
-	x int
-	y int
-}
-
 func step(actual airplane, moviment move, waypoint bool) airplane {
 	directions := map[string]direction{"N": {0, -1}, "S": {0, 1}, "E": {1, 0}, "W": {-1, 0}}
 
@@ -64,9 +64,7 @@ func step(actual airplane, moviment move, waypoint bool) airplane {
 			actual.posicio = mou(actual.posicio, moviment.value, directions[moviment.action])
 		}
 	case "F":
-
 		actual.posicio = mou(actual.posicio, moviment.value, actual.direccio)
-
 	case "L":
 		for i := 0; i < moviment.value/90; i++ {
 			nova := actual.direccio.x
@@ -79,11 +77,9 @@ func step(actual airplane, moviment move, waypoint bool) airplane {
 			actual.direccio.x = -actual.direccio.y
 			actual.direccio.y = nova
 		}
-
 	default:
 		panic("Horror")
 	}
-
 	return actual
 }
 
@@ -113,7 +109,6 @@ func main() {
 		direccio: direction{1, 0},
 		posicio:  direction{0, 0},
 	}
-
 	distance1 := goAt(linies, actual, false)
 
 	fmt.Println("Part 1: ", distance1)
@@ -122,7 +117,6 @@ func main() {
 		direccio: direction{10, -1},
 		posicio:  direction{0, 0},
 	}
-
 	distance2 := goAt(linies, waypoint, true)
 	fmt.Println("Part 2: ", distance2)
 }
