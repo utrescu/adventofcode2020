@@ -13,11 +13,9 @@ func stringToInt(str string) (int, error) {
 	return strconv.Atoi(nonFractionalPart[0])
 }
 
-type position struct {
-	angle    float64
-	direccio int
-	east     int
-	north    int
+type airplane struct {
+	direccio direction
+	posicio  direction
 }
 
 type move struct {
@@ -44,44 +42,46 @@ func readLines(path string) ([]move, error) {
 	return lines, scanner.Err()
 }
 
-func mou(actual position, moviment string, value int) position {
-	switch moviment {
-	case "N":
-		actual.north -= value
-	case "S":
-		actual.north += value
-	case "E":
-		actual.east += value
-	case "W":
-		actual.east -= value
-	default:
-		panic("Il·legal moviment")
-	}
+func mou(actual direction, value int, dir direction) direction {
+	actual.y += (dir.y * value)
+	actual.x += (dir.x * value)
 	return actual
 }
 
-func step(actual position, moviment move) position {
-	directions := []string{"E", "N", "W", "S"}
+type direction struct {
+	x int
+	y int
+}
+
+func step(actual airplane, moviment move, waypoint bool) airplane {
+	directions := map[string]direction{"N": {0, -1}, "S": {0, 1}, "E": {1, 0}, "W": {-1, 0}}
 
 	switch moviment.action {
+	case "N", "S", "E", "W":
+		if waypoint {
+			actual.direccio = mou(actual.direccio, moviment.value, directions[moviment.action])
+		} else {
+			actual.posicio = mou(actual.posicio, moviment.value, directions[moviment.action])
+		}
+	case "F":
+
+		actual.posicio = mou(actual.posicio, moviment.value, actual.direccio)
+
 	case "L":
-		pas := moviment.value / 90
-		actual.direccio = (actual.direccio + pas) % len(directions)
+		for i := 0; i < moviment.value/90; i++ {
+			nova := actual.direccio.x
+			actual.direccio.x = actual.direccio.y
+			actual.direccio.y = -nova
+		}
 	case "R":
-		pas := moviment.value / 90
-		for pas > 0 {
-			if actual.direccio-1 < 0 {
-				actual.direccio = len(directions) - 1
-			} else {
-				actual.direccio--
-			}
-			pas--
+		for i := 0; i < moviment.value/90; i++ {
+			nova := actual.direccio.x
+			actual.direccio.x = -actual.direccio.y
+			actual.direccio.y = nova
 		}
 
-	case "F":
-		actual = mou(actual, directions[actual.direccio], moviment.value)
 	default:
-		actual = mou(actual, moviment.action, moviment.value)
+		panic("Horror")
 	}
 
 	return actual
@@ -94,32 +94,35 @@ func abs(value int) int {
 	return value
 }
 
-func goAt(moves []move) int {
-	actual := position{
-		angle:    0,
-		direccio: 0,
-		east:     0,
-		north:    0,
-	}
-	i := 1
+func goAt(moves []move, actual airplane, waypoint bool) int {
+
 	for _, mou := range moves {
-		fmt.Println(i)
-		actual = step(actual, mou)
-		i++
+		actual = step(actual, mou, waypoint)
 	}
-	return abs(actual.north) + abs(actual.east)
+	return abs(actual.posicio.x) + abs(actual.posicio.y)
 }
 
 func main() {
-	correctes2 := 0
 
 	linies, err := readLines("input")
 	if err != nil {
 		panic("File read failed")
 	}
 
-	distance1 := goAt(linies)
+	actual := airplane{
+		direccio: direction{1, 0},
+		posicio:  direction{0, 0},
+	}
+
+	distance1 := goAt(linies, actual, false)
 
 	fmt.Println("Part 1: ", distance1)
-	fmt.Println("Part 2: ", correctes2)
+
+	waypoint := airplane{
+		direccio: direction{10, -1},
+		posicio:  direction{0, 0},
+	}
+
+	distance2 := goAt(linies, waypoint, true)
+	fmt.Println("Part 2: ", distance2)
 }
