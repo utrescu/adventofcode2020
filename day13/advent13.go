@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -15,14 +16,14 @@ func stringToInt(str string) (uint64, error) {
 
 // readLines reads a whole file into memory
 // and returns a slice of its lines.
-func readLines(path string) (uint64, []uint64, error) {
+func readLines(path string) (uint64, []autobus, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return ^uint64(0), nil, err
 	}
 	defer file.Close()
 
-	var lines []uint64
+	var lines []autobus
 	scanner := bufio.NewScanner(file)
 
 	var timestamp uint64
@@ -32,15 +33,55 @@ func readLines(path string) (uint64, []uint64, error) {
 			timestamp, _ = stringToInt(scanner.Text())
 			i++
 		} else {
-			for _, text := range strings.Split(scanner.Text(), ",") {
+			for index, text := range strings.Split(scanner.Text(), ",") {
 				number, err := stringToInt(text)
 				if err == nil {
-					lines = append(lines, number)
+					lines = append(lines, autobus{number, uint64(index)})
 				}
 			}
 		}
 	}
 	return timestamp, lines, scanner.Err()
+}
+
+type autobus struct {
+	id     uint64
+	offset uint64
+}
+
+func firstBus(timestamp uint64, busos []autobus) uint64 {
+
+	bestBus := ^uint64(0)
+	timeWait := ^uint64(0)
+
+	for _, bus := range busos {
+		nextAt := ((timestamp / bus.id) + 1) * bus.id
+		wait := nextAt - timestamp
+		if wait < timeWait {
+			bestBus = bus.id
+			timeWait = wait
+		}
+	}
+
+	return bestBus * timeWait
+}
+
+func firstBus2(busos []autobus) uint64 {
+
+	sort.Slice(busos, func(i, j int) bool {
+		return busos[i].id > busos[j].id
+	})
+
+	minValue := uint64(0)
+	runningProduct := uint64(1)
+	for _, v := range busos {
+		for (minValue+v.offset)%v.id != 0 {
+			minValue += runningProduct
+		}
+		runningProduct *= v.id
+	}
+	return minValue
+
 }
 
 func main() {
@@ -52,21 +93,8 @@ func main() {
 	correctes1 := firstBus(timestamp, busos)
 
 	fmt.Println("Part 1: ", correctes1)
-}
 
-func firstBus(timestamp uint64, busos []uint64) uint64 {
+	correctes2 := firstBus2(busos)
 
-	bestBus := ^uint64(0)
-	timeWait := ^uint64(0)
-
-	for _, bus := range busos {
-		nextAt := ((timestamp / bus) + 1) * bus
-		wait := nextAt - timestamp
-		if wait < timeWait {
-			bestBus = bus
-			timeWait = wait
-		}
-	}
-
-	return bestBus * timeWait
+	fmt.Println("Part 2: ", correctes2)
 }
