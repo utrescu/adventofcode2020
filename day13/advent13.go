@@ -62,7 +62,6 @@ func firstBus(timestamp uint64, busos []autobus) uint64 {
 			timeWait = wait
 		}
 	}
-
 	return bestBus * timeWait
 }
 
@@ -72,15 +71,15 @@ func firstBus2(busos []autobus) uint64 {
 		return busos[i].id > busos[j].id
 	})
 
-	minValue := uint64(0)
-	runningProduct := uint64(1)
-	for _, v := range busos {
-		for (minValue+v.offset)%v.id != 0 {
-			minValue += runningProduct
+	timestamp := uint64(0)
+	timestampstep := uint64(1)
+	for _, bus := range busos {
+		for (timestamp+bus.offset)%bus.id != 0 {
+			timestamp += timestampstep
 		}
-		runningProduct *= v.id
+		timestampstep *= bus.id
 	}
-	return minValue
+	return timestamp
 
 }
 
@@ -91,10 +90,8 @@ func main() {
 	}
 
 	correctes1 := firstBus(timestamp, busos)
-
 	fmt.Println("Part 1: ", correctes1)
 
 	correctes2 := firstBus2(busos)
-
 	fmt.Println("Part 2: ", correctes2)
 }
