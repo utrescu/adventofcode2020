@@ -120,6 +120,73 @@ func bitmaskvaluecount(lines []instruction) int {
 	return suma
 }
 
+func calculateMemory(pos int, mask []rune, original []int, generateds [][]int) [][]int {
+	if pos >= len(mask) {
+		return generateds
+	}
+
+	switch mask[pos] {
+	case '0':
+		for i := range generateds {
+			generateds[i] = append(generateds[i], original[pos])
+		}
+	case '1':
+		for i := range generateds {
+			generateds[i] = append(generateds[i], 1)
+		}
+	case 'X':
+		for i := range generateds {
+			zero := make([]int, len(generateds[i]))
+			copy(zero, generateds[i])
+			generateds[i] = append(generateds[i], 1)
+
+			zero = append(zero, 0)
+			generateds = append(generateds, zero)
+		}
+	}
+	return calculateMemory(pos+1, mask, original, generateds)
+}
+
+func getFloatingRegister(mask []rune, numRegister int) []int {
+	result := make([]int, 0)
+	binValues := toBinari(numRegister)
+	generateds := make([][]int, 1)
+	// generateds = append(generateds, []int{})
+
+	registers := calculateMemory(0, mask, binValues, generateds)
+	for _, numbers := range registers {
+		result = append(result, toInt(numbers))
+	}
+
+	return result
+}
+
+func bitmaskvaluecount2(lines []instruction) int {
+	var mask []rune
+	registers := make(map[int]int)
+
+	for _, line := range lines {
+		if line.mask != nil {
+			mask = line.mask
+		} else {
+			// L'enunciat no deixa clar que ara no s'ha de gravar a memòria
+			// de la mateixa forma que a la part 1 ... (m'ha fet perdre molt de temps)
+			newValue := line.value // processa(mask, line.value)
+
+			floatingRegisters := getFloatingRegister(mask, line.register)
+			for _, floatingRegister := range floatingRegisters {
+				registers[floatingRegister] = newValue
+			}
+		}
+	}
+
+	suma := 0
+	for _, value := range registers {
+		suma += value
+	}
+	return suma
+}
+
 func main() {
 	linies, err := readLines("input")
 	if err != nil {
@@ -127,6 +194,8 @@ func main() {
 	}
 
 	correctes1 := bitmaskvaluecount(linies)
-
 	fmt.Println("Part 1: ", correctes1)
+
+	correctes2 := bitmaskvaluecount2(linies)
+	fmt.Println("Part 2: ", correctes2)
 }
