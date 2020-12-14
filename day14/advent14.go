@@ -88,6 +88,8 @@ func toInt(bits []int) int {
 	return value
 }
 
+// Part 1 ------------------------------
+
 func processa(mask []rune, value int) int {
 	binValues := toBinari(value)
 	for i := range binValues {
@@ -120,6 +122,8 @@ func bitmaskvaluecount(lines []instruction) int {
 	return suma
 }
 
+// Part 2 -----------------
+
 func calculateMemory(pos int, mask []rune, original []int, generateds [][]int) [][]int {
 	if pos >= len(mask) {
 		return generateds
@@ -151,7 +155,6 @@ func getFloatingRegister(mask []rune, numRegister int) []int {
 	result := make([]int, 0)
 	binValues := toBinari(numRegister)
 	generateds := make([][]int, 1)
-	// generateds = append(generateds, []int{})
 
 	registers := calculateMemory(0, mask, binValues, generateds)
 	for _, numbers := range registers {
@@ -186,6 +189,8 @@ func bitmaskvaluecount2(lines []instruction) int {
 	}
 	return suma
 }
+
+// --------------------------
 
 func main() {
 	linies, err := readLines("input")
