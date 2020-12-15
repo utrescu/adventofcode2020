@@ -35,7 +35,9 @@ func main() {
 	startingNumbers := []int{1, 0, 16, 5, 17, 4}
 
 	correctes1 := soluciona1(startingNumbers, 2020)
-
 	fmt.Println("Part 1: ", correctes1)
+
+	correctes2 := soluciona1(startingNumbers, 30000000)
+	fmt.Println("Part 2: ", correctes2)
 
 }
