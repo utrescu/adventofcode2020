@@ -46,9 +46,9 @@ func generateTicket(line string) ([]int, error) {
 
 // readLines reads a whole file into memory
 // and returns a slice of its lines.
-func readLines(path string) (map[string][]int, tiquet, []tiquet, error) {
+func readLines(path string) (map[string]map[int]bool, tiquet, []tiquet, error) {
 	var re = regexp.MustCompile(`(?m)(\d+)-(\d+)`)
-	valids := make(map[string][]int)
+	valids := make(map[string]map[int]bool)
 	personal := tiquet{nil}
 	nearby := make([]tiquet, 0)
 
@@ -73,12 +73,12 @@ func readLines(path string) (map[string][]int, tiquet, []tiquet, error) {
 				for i := 0; i < len(match); i++ {
 					actual := valids[name]
 					if actual == nil {
-						actual = make([]int, 0)
+						actual = make(map[int]bool, 0)
 					}
 					start, _ := stringToInt(match[i][1])
 					end, _ := stringToInt(match[i][2])
 					for n := start; n <= end; n++ {
-						actual = append(actual, n)
+						actual[n] = true
 					}
 					valids[name] = actual
 				}
@@ -123,6 +123,89 @@ func soluciona(valids map[int]bool, others []tiquet) (int, []tiquet) {
 	return suma, corrects
 }
 
+func isCandidate(noteNumbers map[int]bool, actual int) bool {
+	_, ok := noteNumbers[actual]
+	return ok
+}
+
+func locatePossibleCandidates(noteNumbers map[int]bool, tickets []tiquet, posicio int) bool {
+	valid := true
+
+	for _, ticket := range tickets {
+		valid = valid && isCandidate(noteNumbers, ticket.data[posicio])
+		if valid == false {
+			return false
+		}
+	}
+	return valid
+
+}
+
+func locate(llista []int, value int) int {
+	for i := range llista {
+		if llista[i] == value {
+			return i
+		}
+	}
+	return -1
+}
+
+func remove(key string, value int, candidates map[string][]int) {
+	for k, a := range candidates {
+		if k != key {
+			i := locate(a, value)
+			if i != -1 {
+				a[i] = a[len(a)-1]
+				a = a[:len(a)-1]
+				candidates[k] = a
+			}
+		}
+	}
+}
+
+func purge(candidates map[string][]int) bool {
+	for _, v := range candidates {
+		if len(v) > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func soluciona2(notes map[string]map[int]bool, personal tiquet, tickets []tiquet) int {
+	candidates := make(map[string][]int)
+
+	tickets = append(tickets, personal)
+
+	for noteName, noteNumbers := range notes {
+		possibles := make([]int, 0)
+		for i := 0; i < len(personal.data); i++ {
+			if locatePossibleCandidates(noteNumbers, tickets, i) {
+				possibles = append(possibles, i)
+			}
+		}
+		candidates[noteName] = possibles
+	}
+
+	for purge(candidates) {
+		for k, v := range candidates {
+			if len(v) == 1 {
+				remove(k, v[0], candidates)
+			}
+		}
+	}
+
+	// Solution
+	solution := 1
+	for k, v := range candidates {
+		if strings.HasPrefix(k, "departure") {
+			pos := v[0]
+			solution *= personal.data[pos]
+		}
+	}
+	return solution
+}
+
 func main() {
 	valids, personal, others, err := readLines("input")
 	if err != nil {
@@ -131,13 +214,13 @@ func main() {
 
 	numberList := make(map[int]bool)
 	for _, validnumbers := range valids {
-		for _, validnumber := range validnumbers {
+		for validnumber := range validnumbers {
 			numberList[validnumber] = true
 		}
 	}
 	correctes1, tiquetsCorrectes := soluciona(numberList, others)
 	fmt.Println("Part 1: ", correctes1)
 
-	correctes2 := soluciona2(personal, tiquetsCorrectes)
+	correctes2 := soluciona2(valids, personal, tiquetsCorrectes)
 	fmt.Println("Part 2: ", correctes2)
 }
