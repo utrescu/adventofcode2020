@@ -62,10 +62,6 @@ func (d *energycube) obtenirCasella(x, y, z, w int) rune {
 
 func (d *energycube) casellaActiva(x int, y int, z int, w int) int {
 
-	if x == 0 && y == 0 && z == 0 && w == 0 {
-		return 0
-	}
-
 	if d.obtenirCasella(x, y, z, w) == '#' {
 		return 1
 	}
@@ -170,6 +166,7 @@ func main() {
 		panic("File read failed")
 	}
 
+	world.es4d = false
 	correctes1 := processaMapa(world)
 	fmt.Println("Part 1: ", correctes1)
 
