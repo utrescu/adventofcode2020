@@ -8,12 +8,12 @@ import (
 
 // readLines reads a whole file into memory
 // and returns a slice of its lines.
-func readLines(path string) (*energycube, error) {
-	result := &energycube{posicions: map[point]rune{}}
+func readLines(path string) (energycube, error) {
+	result := energycube{posicions: map[point]rune{}}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return energycube{}, err
 	}
 	defer file.Close()
 
@@ -154,7 +154,7 @@ func (d *energycube) comptaActives() int {
 	return count
 }
 
-func processaMapa(world *energycube) int {
+func processaMapa(world energycube) int {
 	pas := 0
 	for pas < 6 {
 		world.step()
@@ -173,13 +173,8 @@ func main() {
 	correctes1 := processaMapa(world)
 	fmt.Println("Part 1: ", correctes1)
 
-	world2, err := readLines("input")
-	if err != nil {
-		panic("File read failed")
-	}
-
-	world2.es4d = true
-	correctes2 := processaMapa(world2)
+	world.es4d = true
+	correctes2 := processaMapa(world)
 	fmt.Println("Part 2: ", correctes2)
 
 }
