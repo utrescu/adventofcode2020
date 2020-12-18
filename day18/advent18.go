@@ -50,44 +50,65 @@ func opera(numero1 int, numero2 int, operador string) int {
 	}
 }
 
-func operaLinia(linia string) int {
+func operaLinia(linia string) string {
 	var re = regexp.MustCompile(`(?m)(\d+) (\D) (\d+)`)
-	resultat := 0
 	match := re.FindStringSubmatch(linia)
 	for len(match) > 1 {
 		numero1, _ := stringToInt(match[1])
 		operador := match[2]
 		numero2, _ := stringToInt(match[3])
-		resultat = opera(numero1, numero2, operador)
+		resultat := opera(numero1, numero2, operador)
 		linia = strings.Replace(linia, match[0], strconv.Itoa(resultat), 1)
 		match = re.FindStringSubmatch(linia)
 	}
 
-	return resultat
+	return linia
 }
 
-func calcula(linia string) int {
+func operaSumes(linia string) string {
+	var re = regexp.MustCompile(`(?m)(\d+) (\+) (\d+)`)
 
+	match := re.FindStringSubmatch(linia)
+	for len(match) > 1 {
+		numero1, _ := stringToInt(match[1])
+		operador := match[2]
+		numero2, _ := stringToInt(match[3])
+		resultat := opera(numero1, numero2, operador)
+		linia = strings.Replace(linia, match[0], strconv.Itoa(resultat), 1)
+		match = re.FindStringSubmatch(linia)
+	}
+
+	return linia
+}
+
+func calcula(linia string, advanced bool) int {
+
+	// Elimina parèntesis
 	var re = regexp.MustCompile(`(?m)(\([^\(\)]+\))`)
 
 	match := re.FindStringSubmatch(linia)
 	for len(match) > 1 {
 		contingut := match[1]
-		numero := calcula(contingut[1 : len(contingut)-1])
+		numero := calcula(contingut[1:len(contingut)-1], advanced)
 		linia = strings.Replace(linia, contingut, strconv.Itoa(numero), 1)
 		match = re.FindStringSubmatch(linia)
 	}
 
-	resultat := operaLinia(linia)
+	if advanced {
+		// Elimina sumes
+		linia = operaSumes(linia)
+	}
+
+	// Calcula
+	resultat, _ := stringToInt(operaLinia(linia))
 	return resultat
 }
 
-func sumaOperacions(linies []string) int {
+func sumaOperacions(linies []string, advanced bool) int {
 
 	suma := 0
 	for _, linia := range linies {
-		fmt.Println("linia", linia, ":")
-		suma += calcula(linia)
+		suma += calcula(linia, advanced)
 	}
 	return suma
 }
@@ -98,7 +119,9 @@ func main() {
 		panic("File read failed")
 	}
 
-	correctes1 := sumaOperacions(linies)
-
+	correctes1 := sumaOperacions(linies, false)
 	fmt.Println("Part 1: ", correctes1)
+
+	correctes2 := sumaOperacions(linies, true)
+	fmt.Println("Part 2: ", correctes2)
 }
