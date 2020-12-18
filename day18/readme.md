@@ -45,8 +45,6 @@ Before you can help with the homework, you need to understand it yourself. **Eva
 
 ## Part 2
 
---- Part Two ---
-
 You manage to answer the child's questions and they finish part 1 of their homework, but get stuck when they reach the next section: **advanced math**.
 
 Now, addition and multiplication have **different** precedence levels, but they're not the ones you're familiar with. Instead, addition is evaluated before multiplication.
@@ -70,5 +68,4 @@ Here are the other examples from above:
 - `5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))` becomes **669060**.
 - `((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2` becomes **23340**.
 
-**What do you get if you add up the results of evaluating the homework problems using these new rules?
-**
+**What do you get if you add up the results of evaluating the homework problems using these new rules?**
