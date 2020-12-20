@@ -142,7 +142,7 @@ func anyMatches2(matches []int) bool {
 	return false
 }
 
-func processaCaselles(caselles map[int]casella) int {
+func processaCaselles(caselles map[int]casella) []int {
 
 	ids := make(map[int]int)
 
@@ -165,15 +165,23 @@ func processaCaselles(caselles map[int]casella) int {
 		}
 	}
 
-	resultat := 1
+	resultat := make([]int, 0)
 	for k, v := range ids {
 		if v == 2 {
-			resultat = resultat * k
+			resultat = append(resultat, k)
 		}
 	}
 
 	return resultat
 
+}
+
+func processaMapa(resultat []int) int {
+
+	// mapa := composeMap(resultat)
+	// comprovar amb expressió regular?
+
+	return 0
 }
 
 func main() {
@@ -182,7 +190,13 @@ func main() {
 		panic("File read failed")
 	}
 
-	correctes1 := processaCaselles(linies)
+	resultat := processaCaselles(linies)
+	correctes1 := 1
+	for _, value := range resultat {
+		correctes1 *= value
+	}
 	fmt.Println("Part 1: ", correctes1)
+
+	correctes2 := processaMapa(resultat)
 
 }
