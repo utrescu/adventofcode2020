@@ -198,5 +198,6 @@ func main() {
 	fmt.Println("Part 1: ", correctes1)
 
 	correctes2 := processaMapa(resultat)
+	fmt.Println("Part 2: ", correctes2)
 
 }
