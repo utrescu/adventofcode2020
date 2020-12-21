@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -65,24 +66,13 @@ func (a alergen) print() {
 	fmt.Println("Alergen", a.name, a.ingredients)
 }
 
-func main() {
-	sumaIngredients, alergens, err := readLines("input")
-	if err != nil {
-		panic("File read failed")
-	}
-
-	for _, alergen := range alergens {
-		alergen.print()
-	}
-
-	correctes1 := searchAlergens(sumaIngredients, alergens)
-	fmt.Println("Part 1: ", correctes1)
-
+type fatalCombination struct {
+	alergic    string
+	ingredient string
 }
 
-func searchAlergens(ingredientCount map[string]int, alergens map[string]alergen) int {
+func searchAlergens(ingredientCount map[string]int, alergens map[string]alergen) (int, string) {
 	part1 := 0
-
 	for ingredient, count := range ingredientCount {
 		found := false
 		for _, alergen := range alergens {
@@ -96,5 +86,47 @@ func searchAlergens(ingredientCount map[string]int, alergens map[string]alergen)
 		}
 	}
 
-	return part1
+	part2 := make([]fatalCombination, 0)
+
+	for len(alergens) > 0 {
+		actualIngredient := ""
+		actualAlergia := ""
+		for _, alergia := range alergens {
+			if len(alergia.ingredients) == 1 {
+				for actualIngredient = range alergia.ingredients {
+				}
+				actualAlergia = alergia.name
+				part2 = append(part2, fatalCombination{
+					alergia.name,
+					actualIngredient})
+				break
+			}
+		}
+		delete(alergens, actualAlergia)
+		for _, purge := range alergens {
+			delete(purge.ingredients, actualIngredient)
+		}
+	}
+
+	sort.Slice(part2, func(i, j int) bool {
+		return part2[i].alergic < part2[j].alergic
+	})
+
+	resultat := make([]string, 0)
+	for _, cosa := range part2 {
+		resultat = append(resultat, cosa.ingredient)
+	}
+	return part1, strings.Join(resultat, ",")
+}
+
+func main() {
+	sumaIngredients, alergens, err := readLines("input")
+	if err != nil {
+		panic("File read failed")
+	}
+
+	correctes1, resultat2 := searchAlergens(sumaIngredients, alergens)
+	fmt.Println("Part 1: ", correctes1)
+	fmt.Println("Part 2:", resultat2)
+
 }
