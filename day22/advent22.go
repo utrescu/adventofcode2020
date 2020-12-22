@@ -53,7 +53,9 @@ func sumaPunts(cartes []int) int {
 	return resultat
 }
 
-func play(cartes [][]int) (int, int) {
+// Part 1 ----
+
+func playCombat(cartes [][]int) int {
 
 	var winner []int
 
@@ -78,7 +80,7 @@ func play(cartes [][]int) (int, int) {
 		cartes[1] = cartes1
 	}
 
-	return sumaPunts(winner), 0
+	return sumaPunts(winner)
 }
 
 func main() {
@@ -87,6 +89,6 @@ func main() {
 		panic("File read failed")
 	}
 
-	correctes1, _ := play(linies)
+	correctes1 := playCombat(linies)
 	fmt.Println("Part 1: ", correctes1)
 }
