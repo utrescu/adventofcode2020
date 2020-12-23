@@ -175,6 +175,9 @@ func barrejaNoRing(input []number, vegades int) []number {
 	current := &input[0]
 	moves := 0
 	for moves < vegades {
+		if moves%100000 == 0 {
+			fmt.Println("... ", moves)
+		}
 		// Remove
 		firstRemoved := current.next
 		lastRemoved := firstRemoved.next.next
