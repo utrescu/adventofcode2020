@@ -2,11 +2,27 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
+
+// COSTATS de les peces
+const COSTATS = 4
+
+// TOP nom del costat
+const TOP = 0
+
+// LEFT nom del costat
+const LEFT = 1
+
+// RIGHT nom del costat
+const RIGHT = 2
+
+// BOTTOM nom del costat
+const BOTTOM = 3
 
 func stringToInt(str string) (int, error) {
 	nonFractionalPart := strings.Split(str, ".")
@@ -48,30 +64,7 @@ func readLines(path string) (map[int]casella, error) {
 		} else {
 			if line == "" {
 				// Calcular costats
-				top := ""
-				botom := ""
-				left := ""
-				right := ""
-				for column := 0; column < len(caselles[0]); column++ {
-					top = top + caselles[0][column]
-					botom = botom + caselles[len(caselles)-1][column]
-				}
-				for row := 0; row < len(caselles); row++ {
-					left = left + caselles[row][0]
-					right = right + caselles[row][len(caselles)-1]
-				}
-				costats := make([]string, 0)
-				costats = append(costats, top)
-				costats = append(costats, left)
-				costats = append(costats, right)
-				costats = append(costats, botom)
-
-				costats = append(costats, reverse(top))
-				costats = append(costats, reverse(left))
-				costats = append(costats, reverse(right))
-				costats = append(costats, reverse(botom))
-
-				lines[id] = casella{costats, caselles}
+				lines[id] = casella{id, getWalls(caselles), caselles}
 			} else {
 
 				caracters := make([]string, 0)
@@ -82,6 +75,43 @@ func readLines(path string) (map[int]casella, error) {
 			}
 		}
 	}
+
+	lines[id] = casella{id, getWalls(caselles), caselles}
+
+	return lines, scanner.Err()
+}
+
+type casella struct {
+	id       int
+	costats  []string
+	caselles [][]string
+}
+
+func rotate(c [][]string) [][]string {
+
+	columnallarg := len(c)
+	newContent := make([][]string, columnallarg)
+
+	for y := 0; y < columnallarg; y++ {
+		newContent[y] = make([]string, len(c[y]))
+		filallarg := len(c[y])
+		for x := 0; x < filallarg; x++ {
+			newContent[y][x] = c[x][filallarg-1-y]
+		}
+	}
+	return newContent
+}
+
+func reverseSlice(c []string) []string {
+	llarg := len(c)
+	next := make([]string, llarg)
+	for i, v := range c {
+		next[llarg-1-i] = v
+	}
+	return next
+}
+
+func getWalls(caselles [][]string) []string {
 	top := ""
 	botom := ""
 	left := ""
@@ -94,30 +124,57 @@ func readLines(path string) (map[int]casella, error) {
 		left = left + caselles[row][0]
 		right = right + caselles[row][len(caselles)-1]
 	}
-	costats := make([]string, 0)
-	costats = append(costats, top)
-	costats = append(costats, left)
-	costats = append(costats, right)
-	costats = append(costats, botom)
+	return []string{
+		top,
+		left,
+		right,
+		botom,
+	}
 
-	costats = append(costats, reverse(top))
-	costats = append(costats, reverse(left))
-	costats = append(costats, reverse(right))
-	costats = append(costats, reverse(botom))
-
-	lines[id] = casella{costats, caselles}
-
-	return lines, scanner.Err()
 }
 
-type casella struct {
-	costats []string
-	casella [][]string
+func (c casella) rotateTile() casella {
+	novesCaselles := rotate(c.caselles)
+
+	return casella{
+		id:       c.id,
+		costats:  getWalls(novesCaselles),
+		caselles: novesCaselles,
+	}
+}
+
+func (c casella) reverseTile() casella {
+	novesCaselles := make([][]string, 0)
+	for _, linia := range c.caselles {
+		novesCaselles = append(novesCaselles, reverseSlice(linia))
+	}
+	return casella{
+		id:       c.id,
+		costats:  getWalls(novesCaselles),
+		caselles: novesCaselles,
+	}
+}
+
+func (c casella) getTile() []string {
+	files := make([]string, 0)
+
+	for i, fila := range c.caselles {
+		linia := ""
+		if i != 0 || i != len(c.caselles)-1 {
+			for j, valor := range fila {
+				if j != 0 && j != len(fila)-1 {
+					linia += valor
+				}
+			}
+		}
+		files = append(files, linia)
+	}
+	return files
 }
 
 func (c casella) contains(paret string) bool {
 	for _, costat := range c.costats {
-		if costat == paret {
+		if costat == paret || reverse(costat) == paret {
 			return true
 		}
 	}
@@ -126,39 +183,39 @@ func (c casella) contains(paret string) bool {
 
 func (c casella) containsOther(other casella) bool {
 	for _, paret := range c.costats {
+		if other.contains(paret) || other.contains(reverse(paret)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c casella) otherFitsOn(other casella) (int, error) {
+	for index, paret := range c.costats {
 		if other.contains(paret) {
-			return true
+			return index % COSTATS, nil
 		}
 	}
-	return false
+	return -1, errors.New("No quadren")
 }
 
-func anyMatches2(matches []int) bool {
-	for _, value := range matches {
-		if value == 2 {
-			return true
-		}
-	}
-	return false
-}
+// --- PART 1
+func processaCaselles(caselles map[int]casella) ([]int, map[int][]casella) {
 
-func processaCaselles(caselles map[int]casella) []int {
-
-	ids := make(map[int]int)
+	ids := make(map[int][]casella)
 
 	for id, actual := range caselles {
-		if id == 2311 {
-			fmt.Println("2311")
-		}
 		for id2, other := range caselles {
 			if id != id2 {
 
 				if other.containsOther(actual) {
-					count, ok := ids[id]
+					_, ok := ids[id]
 					if ok {
-						ids[id] = count + 1
+						ids[id] = append(ids[id], other)
 					} else {
-						ids[id] = 1
+						ids[id] = make([]casella, 1)
+						ids[id][0] = other
 					}
 				}
 			}
@@ -167,37 +224,57 @@ func processaCaselles(caselles map[int]casella) []int {
 
 	resultat := make([]int, 0)
 	for k, v := range ids {
-		if v == 2 {
+		if len(v) == 2 {
 			resultat = append(resultat, k)
 		}
 	}
 
-	return resultat
+	return resultat, ids
 
 }
 
-func processaMapa(resultat []int) int {
+func searchMonster(caselles map[int]casella, casellesAdjacents map[int][]casella) int {
 
+	// Localitzar top, left (0,0)
+	topleft := -1
+	for actual, adjacents := range casellesAdjacents {
+		dret := caselles[actual].costats[RIGHT]
+		baix := caselles[actual].costats[BOTTOM]
+		if len(adjacents) == 2 {
+
+			if adjacents[0].contains(dret) && adjacents[1].contains(baix) ||
+				adjacents[0].contains(baix) && adjacents[1].contains(dret) {
+				topleft = actual
+			}
+		}
+	}
+	fmt.Println(topleft)
+	// Per cada adjacent posar-les on toca (rota, flip)
 	// mapa := composeMap(resultat)
 	// comprovar amb expressió regular?
+
+	/// Monster
+	// #
+	// #    ##    ##    ###
+	//  #  #  #  #  #  #
 
 	return 0
 }
 
 func main() {
-	linies, err := readLines("input")
+	linies, err := readLines("inputtest")
 	if err != nil {
 		panic("File read failed")
 	}
 
-	resultat := processaCaselles(linies)
+	resultat, adjacents := processaCaselles(linies)
 	correctes1 := 1
 	for _, value := range resultat {
 		correctes1 *= value
 	}
 	fmt.Println("Part 1: ", correctes1)
 
-	correctes2 := processaMapa(resultat)
+	correctes2 := searchMonster(linies, adjacents)
 	fmt.Println("Part 2: ", correctes2)
 
 }
