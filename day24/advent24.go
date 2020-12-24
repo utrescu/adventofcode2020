@@ -85,6 +85,8 @@ func moveToTile(moves []string) position {
 	return pos
 }
 
+// Part 1 -----------
+
 func part1(tiles [][]string) (int, map[position]bool) {
 
 	switchedTiles := map[position]bool{}
@@ -101,6 +103,8 @@ func part1(tiles [][]string) (int, map[position]bool) {
 
 	return countBlacks(switchedTiles), switchedTiles
 }
+
+// Part 2 -----------
 
 func getNumBlackNeighbors(cell position, mapa map[position]bool) int {
 	sum := 0
@@ -133,14 +137,14 @@ func part2(mapa map[position]bool, days int) int {
 	for day < days {
 		newDay := map[position]bool{}
 		blackcells := []position{}
-		// faig les que tinc
+
+		// change current cells
 		for cellposition, value := range mapa {
 			veinsnegres := getNumBlackNeighbors(cellposition, mapa)
 			newValue := value
 
 			if value {
 				if veinsnegres == 0 || veinsnegres > 2 {
-					// Black to white
 					newValue = !value
 				}
 				blackcells = append(blackcells, cellposition)
@@ -153,8 +157,7 @@ func part2(mapa map[position]bool, days int) int {
 			newDay[cellposition] = newValue
 		}
 
-		// per cada negra anterior
-		// 	- veins blancs es tornen negres?
+		// append new black neighbors
 		for _, blackcell := range blackcells {
 			for _, cell := range getNewNeighbors(blackcell, mapa) {
 				veinsnegres := getNumBlackNeighbors(cell, mapa)
@@ -163,8 +166,6 @@ func part2(mapa map[position]bool, days int) int {
 				}
 			}
 		}
-
-		// Copiar mapes
 
 		mapa = newDay
 
